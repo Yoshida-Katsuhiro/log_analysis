@@ -1,0 +1,83 @@
+------------------------------------
+
+必須: OS や環境が自動生成するファイル
+
+------------------------------------
+
+macOS/Linux
+
+.DS_Store
+
+IDEの設定
+
+.vscode/
+
+------------------------------------
+
+1. バックエンド / API Gateway (aggregation-api)
+
+------------------------------------
+
+Node.js依存関係の本体
+
+/aws-lambda/aggregation-api/node_modules
+
+Lambdaデプロイパッケージ (一時的なファイル)
+
+/aws-lambda/aggregation-api/*.zip
+/aws-lambda/aggregation-api/dist/
+
+------------------------------------
+
+2. ログデータ生成 (logdata_gen)
+
+------------------------------------
+
+Python仮想環境
+
+/logdata_gen/myenv/
+
+Pythonのバイトコード
+
+/logdata_gen/pycache/
+/logdata_gen/*.pyc
+
+生成されたログデータや一時ファイル
+
+/logdata_gen/.json
+/logdata_gen/.csv
+/logdata_gen/*.txt
+
+------------------------------------
+
+3. フロントエンド (react-serverless-dashboard)
+
+------------------------------------
+
+依存関係の本体
+
+/react-serverless-dashboard/node_modules
+
+ビルド成果物 (Vite/Reactの出力先)
+
+/react-serverless-dashboard/build/
+/react-serverless-dashboard/dist/
+
+環境変数ファイル (シークレットを含む可能性あり)
+
+/react-serverless-dashboard/.env
+/react-serverless-dashboard/.env.local
+
+WebpackやViteなどの中間ファイル
+
+/react-serverless-dashboard/.vite/
+
+------------------------------------
+
+プロジェクト全体
+
+------------------------------------
+
+.envファイル（万が一ルートにシークレットを置いた場合）
+
+.env
