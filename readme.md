@@ -1,95 +1,103 @@
-サーバーレスアクセス解析ダッシュボード (Serverless Access Dashboard)
-本プロジェクトは、AWS Lambda、API Gateway、および React/TypeScript を用いて構築された、シンプルで高速なアクセス解析ダッシュボードアプリケーションです。
+サーバーレスアクセス解析ダッシュボード
 
 プロジェクト概要
-このダッシュボードは、シミュレーションされた日次のアクセスイベントデータを視覚化し、以下の主要な指標とグラフを提供します。
+本プロジェクトは、AWS Lambda、Amazon API Gateway、および React/TypeScript を用いて構築された、シンプルなサーバーレスのアクセス解析ダッシュボードアプリケーションです。シミュレーションされた仮想のアクセスイベントデータを処理し、リアルタイムに近い形で結果を可視化することを目的としています。
 
-総イベント数、日次平均イベント数、イベントタイプ数
+主な機能
+日別イベント数、イベントタイプ数、平均イベント数（日）のサマリー表示
 
-日別イベントトレンド (棒グラフ)
+日別イベントトレンドのグラフ表示
 
-イベントタイプ別内訳 (ドーナツグラフ)
+イベントタイプ別内訳のドーナツグラフ
 
-アーキテクチャ
-フロントエンド
+プロジェクト構成（モノレポ構造）
+このリポジトリは、複数のプロジェクトを一つのリポジトリで管理するモノレポ構造を採用しています。
 
-技術: React (TypeScript), Tailwind CSS, Chart.js
+コンポーネント別概要
+1. aws-lambda/aggregation-api
+技術スタック: Node.js (TypeScript)
 
-役割: UIの構築、APIからのデータ取得と描画。
+役割: API Gateway経由のリクエストを受け付け、集計データを取得・返却するバックエンドLambda関数です。
 
-バックエンド
+2. logdata_gen
+技術スタック: Python
 
-技術: AWS Lambda (Python)
+役割: ログデータ生成シミュレーター。データ投入や定期的なデータ更新に使用します。
 
-役割: ダッシュボードデータ生成・集計処理。
+3. react-serverless-dashboard
+技術スタック: React / TypeScript, Tailwind CSS, Chart.js
 
-API
-
-技術: Amazon API Gateway
-
-役割: フロントエンドからのリクエストを受け付け、Lambdaへルーティング。
-
-データベース
-
-(今回はシミュレーションデータを使用)
-
-役割: 今後の拡張のためのデータ格納場所として想定。
+役割: ユーザーインターフェース。API Gatewayにリクエストを送り、取得したデータをグラフ表示するフロントエンドです。
 
 環境構築と実行
-1. バックエンド (AWS Lambda + API Gateway)
-Lambda関数 (backend/) を作成し、Pythonコードをデプロイします。
+1. AWSリソースのデプロイ
+AWSコンソールまたは IaC（Infrastructure as Code）ツールを使用して、以下のリソースを構築してください。
 
-API Gatewayで HTTP API または REST API を作成し、Lambda関数と統合します。
+DynamoDBテーブル: アクセスログデータを保存するためのテーブル。
 
-API GatewayのエンドポイントURLを控えます。
+Lambda関数: logdata_gen と aws-lambda/aggregation-api のコードをそれぞれ Lambda 関数としてデプロイします。
 
-2. フロントエンド (React)
-プロジェクトルート (frontend/) に移動し、依存関係をインストールします。
+API Gateway: aggregation-api Lambdaに接続するREST APIを作成し、CORS設定を行います。
+
+2. バックエンド（Lambda）の設定
+各Lambdaプロジェクトのディレクトリで依存関係をインストールします。
 
 Bash
 
+# aggregation-api (Node.js) の依存関係インストール
+cd aws-lambda/aggregation-api
 npm install
-# または yarn install
-src/App.tsx 内で、API GatewayのエンドポイントURLを適切に設定します。
+Bash
 
-アプリケーションを起動します。
+# logdata_gen (Python) の依存関係インストール
+cd logdata_gen
+python -m venv myenv
+source myenv/bin/activate  # Windows: .\myenv\Scripts\activate
+pip install -r requirements.txt
+3. フロントエンド（React）の設定
+react-serverless-dashboard プロジェクトのルートで依存関係をインストールし、ローカルサーバーを起動します。
 
 Bash
 
-npm run start
-# または yarn start
-開発過程における主要なトラブルシューティングの記録 (Chronicle)
-本プロジェクトの開発において、特に重要だった技術的課題と、その解決策を記録します。
+# 依存関係のインストール (npmを使用)
+cd react-serverless-dashboard
+npm install
 
-1. API通信とCORS問題の解決
-課題: APIへのアクセスは成功しているにも関わらず、ブラウザ側でセキュリティエラー（CORSエラー）が発生し、データが利用できない状態でした。
+# 開発サーバーの起動
+npm run dev
+ブラウザで表示されたURLにアクセスし、ダッシュボードが正しく表示されることを確認してください。
 
-原因: ReactアプリとAPI Gatewayのオリジンが異なるため、APIレスポンスに適切な Access-Control-Allow-Origin ヘッダーが含まれておらず、ブラウザのセキュリティ機能がブロックしていました。
+トラブルシューティング / 開発経緯の記録
+1. 致命的な CORS (オリジン間リソース共有) の解決
+問題: APIへのアクセスは成功しても、ブラウザ側でセキュリティエラーが発生し、データが利用できませんでした。
 
-解決策: API Gatewayの「統合レスポンス」設定ではなく、Lambda関数のPythonコード内で、HTTPレスポンスヘッダーにCORSを明示的に許可する設定 ('Access-Control-Allow-Origin': '*') を追加することで解決しました。
+解決策: Lambda関数のレスポンスにCORSヘッダーを明示的に含めることで、ブラウザ側のブロックを解除しました。
 
-Python
+JavaScript
 
-# Lambda レスポンスヘッダーの設定例
-response = {
-    'statusCode': 200,
-    'headers': {
-        # ここが最も重要な設定
-        'Access-Control-Allow-Origin': '*', 
-        'Content-Type': 'application/json'
+// Lambda レスポンスヘッダーの設定（Node.jsの例）
+{
+    "statusCode": 200,
+    "headers": {
+        "Access-Control-Allow-Origin": "*", // 本番環境では特定のオリジンを指定
+        "Access-Control-Allow-Headers": "Content-Type"
     },
-    # ... 他の処理 ...
+    "body": "..."
 }
-return response
-2. Tailwind CSSの統合
-課題: Tailwind CSSを利用するための複雑なビルド設定を避けたい。
+2. Chart.js と TypeScript のインポート問題
+問題: Chart.jsをCDNで読み込んでいるため、React側で import すると TypeScript のモジュール解決エラーが発生しました。
 
-解決策: ビルドプロセス不要な Tailwind CDN (Content Delivery Network) を採用しました。frontend/public/index.html に以下の <script> タグを追加するだけで、Reactコンポーネント内ですべての Tailwind クラスを利用できるようになりました。
+解決策: import を完全に削除し、public/index.htmlでChart.jsをロードした後、グローバルオブジェクトとしてアクセスすることで問題を回避しました。
+
+JavaScript
+
+// Reactコンポーネント内での対応
+// importを避け、グローバルオブジェクトとしてアクセス
+const ChartClass = window.Chart;
+// ... ChartClass を使ってグラフインスタンスを作成 ...
+3. Tailwind CSS の統合
+解決策: 複雑なビルド設定を避けるため、public/index.html内でTailwind CDNを読み込む方法を採用し、即座にCSSフレームワークを利用できるようにしました。
 
 HTML
 
 <script src="https://cdn.tailwindcss.com"></script>
-3. Chart.js と TypeScript のインポート問題
-課題: Chart.jsをCDNで読み込んでいるため、importするとコンパイルエラー（TS2307）が発生し、import typeに切り替えると、実行時に値が使えないエラー（TS1361）が発生しました。
-
-解決策: Chart.jsがindex.htmlでロードされ、グローバル変数として利用できる前提でコードを記述しました。Reactコンポーネント内での import をすべて削除し、window.Chart オブジェクトを直接利用することで、TypeScriptのモジュール解決の制約を回避しました。
