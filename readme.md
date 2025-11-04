@@ -100,4 +100,4 @@ const ChartClass = window.Chart;
 
 HTML
 
-<script src=https://cdn.tailwindcss.com></script>
+<script src= "https://cdn.tailwindcss.com" ></script>
